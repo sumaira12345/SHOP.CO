@@ -1,101 +1,115 @@
-import Image from "next/image";
+import ProductListSec from "@/components/common/ProductListSec";
+import Brands from "@/components/homepage/Brands/page";
+import DressStyle from "@/components/homepage/DressStyle/page";
+import Header from "@/components/homepage/Header/page";
+import Reviews from "@/components/homepage/Reviews/page";
+import { Product } from "../interface";
+import { Review } from "@/types/review.types";
+import { client } from "@/sanity/lib/client";
 
-export default function Home() {
+async function getProducts(start: number, end: number) {
+  const query = `*[_type == "products"] | order(_createdAt desc) [${start}...${end}] {
+    _id,
+    name,
+    price,
+    image,
+    discountPercent,
+    "new": new,
+    colors,
+    sizes
+  }`;
+  
+  return await client.fetch<Product[]>(query);
+}
+
+// Static review data
+const reviewsData: Review[] = [
+  {
+    id: 1,
+    user: "Alex K.",
+    content:
+      '"Finding clothes that align with my personal style used to be a challenge until I discovered Shop.co. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions."',
+    rating: 5,
+    date: "August 14, 2023",
+  },
+  {
+    id: 2,
+    user: "Sarah M.",
+    content: `"I'm blown away by the quality and style of the clothes I received from Shop.co. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations."`,
+    rating: 5,
+    date: "August 15, 2023",
+  },
+  {
+    id: 3,
+    user: "Ethan R.",
+    content: `"This t-shirt is a must-have for anyone who appreciates good design. The minimalistic yet stylish pattern caught my eye, and the fit is perfect. I can see the designer's touch in every aspect of this shirt."`,
+    rating: 5,
+    date: "August 16, 2023",
+  },
+  {
+    id: 4,
+    user: "Olivia P.",
+    content: `"As a UI/UX enthusiast, I value simplicity and functionality. This t-shirt not only represents those principles but also feels great to wear. It's evident that the designer poured their creativity into making this t-shirt stand out."`,
+    rating: 5,
+    date: "August 17, 2023",
+  },
+  {
+    id: 5,
+    user: "Liam K.",
+    content: `"This t-shirt is a fusion of comfort and creativity. The fabric is soft, and the design speaks volumes about the designer's skill. It's like wearing a piece of art that reflects my passion for both design and fashion."`,
+    rating: 5,
+    date: "August 18, 2023",
+  },
+  {
+    id: 6,
+    user: "Samantha D.",
+    content: `"I absolutely love this t-shirt! The design is unique and the fabric feels so comfortable. As a fellow designer, I appreciate the attention to detail. It's become my favorite go-to shirt."`,
+    rating: 5,
+    date: "August 19, 2023",
+  },
+];
+
+export default async function Home() {
+  // Fetch both new arrivals and top selling products in parallel
+  const [newArrivals, topSelling, topBrands] = await Promise.all([
+    getProducts(0, 4),  // First 4 products for new arrivals
+    getProducts(4, 8),  // Next 4 products for top selling
+    getProducts(8, 12),  // Get top brands
+  ]);
+   
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <>
+      <Header />
+      <Brands />
+      <main className="my-[50px] sm:my-[72px]">
+        <ProductListSec
+          title="NEW ARRIVALS"
+          data={newArrivals}
+          viewAllLink="/shop?category=new"
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className="max-w-frame mx-auto px-4 xl:px-0">
+          <hr className="h-[1px] border-t-black/10 my-10 sm:my-16" />
         </div>
+        <div className="mb-[50px] sm:mb-20">
+          <ProductListSec
+            title="TOP SELLING"
+            data={topSelling}
+            viewAllLink="/shop"
+          />
+        </div>
+        <div className="mb-[50px] sm:mb-20">
+          <ProductListSec
+            title="TOP BRANDS"
+            data={topBrands}
+            viewAllLink="/shop"
+          />
+        </div>
+        <div className="mb-[50px] sm:mb-20">
+          <DressStyle />
+        </div>
+        <Reviews data={reviewsData} />
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    </>
   );
 }
